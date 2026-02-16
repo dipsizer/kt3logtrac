@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Program.cs
+using System;
 using logandtrac.Services;
 using logandtrac.Logging;
 using Serilog;
@@ -9,15 +10,20 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Настраиваем логгер
-        var logger = LoggerConfig.Configure();
+        // Настраиваем структурированное логирование
+        StructuredLogger.Configure();
+        var logger = Log.Logger;
         
         try
         {
+            logger.Information("=== TASK MANAGER v2.0 STARTED ===");
+            
             var taskManager = new TaskManagerService(logger);
             
-            Console.WriteLine("=== TASK MANAGER ===");
-            Console.WriteLine("Система управления задачами с логированием (Serilog)");
+            Console.WriteLine("╔════════════════════════════════╗");
+            Console.WriteLine("║     TASK MANAGER v2.0         ║");
+            Console.WriteLine("║  Структурированное логирование ║");
+            Console.WriteLine("╚════════════════════════════════╝");
             ShowHelp();
             
             bool isRunning = true;
@@ -25,21 +31,24 @@ class Program
             while (isRunning)
             {
                 Console.Write("\n> ");
-                string? input = Console.ReadLine()?.Trim().ToLower();
+                string? input = Console.ReadLine()?.Trim();
                 
                 if (string.IsNullOrEmpty(input))
                 {
                     continue;
                 }
                 
-                switch (input)
+                string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string command = parts[0].ToLower();
+                
+                switch (command)
                 {
                     case "add":
-                        AddTask(taskManager);
+                        AddTask(taskManager, parts);
                         break;
                         
                     case "remove":
-                        RemoveTask(taskManager);
+                        RemoveTask(taskManager, parts);
                         break;
                         
                     case "list":
@@ -47,7 +56,11 @@ class Program
                         break;
                         
                     case "complete":
-                        CompleteTask(taskManager);
+                        CompleteTask(taskManager, parts);
+                        break;
+                        
+                    case "search":
+                        SearchTasks(taskManager, parts);
                         break;
                         
                     case "stats":
@@ -60,72 +73,124 @@ class Program
                         
                     case "exit":
                         isRunning = false;
-                        logger.Information("Приложение завершает работу по команде пользователя");
+                        logger.Information("Application shutdown initiated by user");
                         Console.WriteLine("\nДо свидания!");
-                        Console.WriteLine($"Логи сохранены в директории Logs/");
+                        Console.WriteLine($"Структурированные логи сохранены в Logs/");
                         break;
                         
                     default:
-                        logger.Warning("Неизвестная команда: {Command}", input);
-                        Console.WriteLine($"Неизвестная команда. Введите 'help' для списка команд.");
+                        logger.Warning("Unknown command: {Command}", command);
+                        Console.WriteLine($"Неизвестная команда: {command}");
+                        Console.WriteLine("Введите 'help' для списка команд.");
                         break;
                 }
             }
         }
         catch (Exception ex)
         {
-            logger.Fatal(ex, "Критическая ошибка в приложении");
-            Console.WriteLine($"Произошла критическая ошибка: {ex.Message}");
+            logger.Fatal(ex, "Critical application error");
+            Console.WriteLine($"Критическая ошибка: {ex.Message}");
         }
         finally
         {
-            // Явно закрываем логгер
             Log.CloseAndFlush();
         }
     }
 
-    static void AddTask(TaskManagerService taskManager)
+    static void AddTask(TaskManagerService taskManager, string[] parts)
     {
-        Console.Write("Введите название задачи: ");
-        string? title = Console.ReadLine();
-        
-        if (!string.IsNullOrEmpty(title))
+        if (parts.Length < 2)
         {
-            taskManager.AddTask(title);
+            Console.Write("Введите название задачи: ");
+            string? title = Console.ReadLine();
+            
+            if (!string.IsNullOrEmpty(title))
+            {
+                Console.Write("Введите приоритет (High/Medium/Low) [Medium]: ");
+                string? priority = Console.ReadLine();
+                if (string.IsNullOrEmpty(priority)) priority = "Medium";
+                
+                taskManager.AddTask(title, priority);
+            }
+        }
+        else
+        {
+            string title = string.Join(" ", parts.Skip(1));
+            taskManager.AddTask(title, "Medium");
         }
     }
 
-    static void RemoveTask(TaskManagerService taskManager)
+    static void RemoveTask(TaskManagerService taskManager, string[] parts)
     {
-        Console.Write("Введите название задачи для удаления: ");
-        string? title = Console.ReadLine();
-        
-        if (!string.IsNullOrEmpty(title))
+        if (parts.Length < 2)
         {
+            Console.Write("Введите название задачи для удаления: ");
+            string? title = Console.ReadLine();
+            
+            if (!string.IsNullOrEmpty(title))
+            {
+                taskManager.RemoveTask(title);
+            }
+        }
+        else
+        {
+            string title = string.Join(" ", parts.Skip(1));
             taskManager.RemoveTask(title);
         }
     }
 
-    static void CompleteTask(TaskManagerService taskManager)
+    static void CompleteTask(TaskManagerService taskManager, string[] parts)
     {
-        Console.Write("Введите название задачи для отметки выполнения: ");
-        string? title = Console.ReadLine();
-        
-        if (!string.IsNullOrEmpty(title))
+        if (parts.Length < 2)
         {
+            Console.Write("Введите название задачи для отметки выполнения: ");
+            string? title = Console.ReadLine();
+            
+            if (!string.IsNullOrEmpty(title))
+            {
+                taskManager.CompleteTask(title);
+            }
+        }
+        else
+        {
+            string title = string.Join(" ", parts.Skip(1));
             taskManager.CompleteTask(title);
+        }
+    }
+
+    static void SearchTasks(TaskManagerService taskManager, string[] parts)
+    {
+        if (parts.Length < 2)
+        {
+            Console.Write("Введите поисковый запрос: ");
+            string? query = Console.ReadLine();
+            
+            if (!string.IsNullOrEmpty(query))
+            {
+                taskManager.SearchTasks(query);
+            }
+        }
+        else
+        {
+            string query = string.Join(" ", parts.Skip(1));
+            taskManager.SearchTasks(query);
         }
     }
 
     static void ShowHelp()
     {
         Console.WriteLine("\nДоступные команды:");
-        Console.WriteLine("  add     - Добавить новую задачу");
-        Console.WriteLine("  remove  - Удалить задачу");
-        Console.WriteLine("  list    - Показать список задач");
-        Console.WriteLine("  complete - Отметить задачу как выполненную");
-        Console.WriteLine("  stats   - Показать статистику");
-        Console.WriteLine("  help    - Показать это сообщение");
-        Console.WriteLine("  exit    - Выход из программы");
+        Console.WriteLine("  add [название]        - Добавить новую задачу");
+        Console.WriteLine("  remove [название]     - Удалить задачу");
+        Console.WriteLine("  list                   - Показать список задач");
+        Console.WriteLine("  complete [название]    - Отметить задачу как выполненную");
+        Console.WriteLine("  search [запрос]        - Поиск задач");
+        Console.WriteLine("  stats                  - Показать статистику");
+        Console.WriteLine("  help                    - Показать это сообщение");
+        Console.WriteLine("  exit                    - Выход из программы");
+        Console.WriteLine("\nПримеры:");
+        Console.WriteLine("  > add Купить продукты");
+        Console.WriteLine("  > complete Купить продукты");
+        Console.WriteLine("  > search продукты");
     }
 }

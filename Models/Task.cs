@@ -1,4 +1,6 @@
+// Models/Task.cs
 using System;
+using System.Text.Json;
 
 namespace logandtrac.Models;
 
@@ -8,6 +10,8 @@ public class TaskItem
     public string Title { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsCompleted { get; set; }
+    public string? Description { get; set; }
+    public string Priority { get; set; } = "Medium";
 
     public TaskItem(string title)
     {
@@ -17,9 +21,17 @@ public class TaskItem
         IsCompleted = false;
     }
 
+    public string ToJson()
+    {
+        return JsonSerializer.Serialize(this, new JsonSerializerOptions 
+        { 
+            WriteIndented = true 
+        });
+    }
+
     public override string ToString()
     {
         string status = IsCompleted ? "✓" : "○";
-        return $"[{Id}] {Title} - {status} ({CreatedAt:dd.MM.yyyy HH:mm})";
+        return $"[{Id}] {Title} - {status} ({Priority}) [{CreatedAt:dd.MM.yyyy HH:mm}]";
     }
 }

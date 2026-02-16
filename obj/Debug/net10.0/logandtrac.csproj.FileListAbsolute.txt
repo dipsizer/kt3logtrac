@@ -19,3 +19,5 @@
 /Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Sinks.Console.dll
 /Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Sinks.File.dll
 /Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.csproj.Up2Date
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Enrichers.Environment.dll
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Enrichers.Thread.dll
