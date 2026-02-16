@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "WM+ntsBAkrk=",
+  "dgSpecHash": "QbvqDr1Lonc=",
   "success": true,
   "projectFilePath": "/Users/soprano/codework/kt3/Logandtrac/logandtrac.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/soprano/.nuget/packages/serilog/4.0.0/serilog.4.0.0.nupkg.sha512",
+    "/Users/soprano/.nuget/packages/serilog.formatting.compact/3.0.0/serilog.formatting.compact.3.0.0.nupkg.sha512",
+    "/Users/soprano/.nuget/packages/serilog.sinks.console/6.0.0/serilog.sinks.console.6.0.0.nupkg.sha512",
+    "/Users/soprano/.nuget/packages/serilog.sinks.file/6.0.0/serilog.sinks.file.6.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

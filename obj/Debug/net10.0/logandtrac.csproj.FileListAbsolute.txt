@@ -12,3 +12,10 @@
 /Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.pdb
 /Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.genruntimeconfig.cache
 /Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/ref/logandtrac.dll
+/Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.csproj.AssemblyReference.cache
+/Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.sourcelink.json
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.dll
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Formatting.Compact.dll
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Sinks.Console.dll
+/Users/soprano/codework/kt3/Logandtrac/bin/Debug/net10.0/Serilog.Sinks.File.dll
+/Users/soprano/codework/kt3/Logandtrac/obj/Debug/net10.0/logandtrac.csproj.Up2Date

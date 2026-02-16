@@ -1,109 +1,43 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using Serilog;
 
-namespace logandtrac.Logging
+namespace logandtrac.Logging;
+
+public static class LoggerConfig
 {
-    public static class LoggerConfig
+    private static string logDirectory = "Logs";
+
+    public static ILogger Configure()
     {
-        private static string logDirectory = "Logs";
-        private static string? currentLogFile; // делаем поле nullable
-
-        public static void Configure()
+        // Создаем директорию для логов, если её нет
+        if (!Directory.Exists(logDirectory))
         {
-            // Очищаем существующие слушатели
-            Trace.Listeners.Clear();
-            
-            // Создаем директорию для логов, если её нет
-            if (!Directory.Exists(logDirectory))
-            {
-                Directory.CreateDirectory(logDirectory);
-            }
-
-            // Создаем имя файла с временной меткой
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            currentLogFile = Path.Combine(logDirectory, $"taskmanager_{timestamp}.log");
-
-            // Настраиваем слушатели
-            ConfigureConsoleListener();
-            ConfigureFileListener();
-            
-            // Автоматически сбрасывать буфер после каждой записи
-            Trace.AutoFlush = true;
-            
-            // Логируем старт приложения
-            LogInformation("Приложение TaskManager запущено");
-            LogTrace($"Директория логов: {Path.GetFullPath(logDirectory)}");
-            if (currentLogFile != null)
-            {
-                LogTrace($"Файл лога: {currentLogFile}");
-            }
+            Directory.CreateDirectory(logDirectory);
         }
 
-        private static void ConfigureConsoleListener()
-        {
-            var consoleListener = new ConsoleTraceListener();
-            consoleListener.Name = "ConsoleLogger";
-            Trace.Listeners.Add(consoleListener);
-        }
+        // Настраиваем логгер
+        var logger = new LoggerConfiguration()
+            .MinimumLevel.Debug() // Логируем все уровни от Debug и выше
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
+            )
+            .WriteTo.File(
+                path: Path.Combine(logDirectory, "taskmanager_.log"),
+                rollingInterval: RollingInterval.Day, // Новый файл каждый день
+                retainedFileCountLimit: 7, // Храним логи за 7 дней
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information // В файл пишем от Information
+            )
+            .CreateLogger();
 
-        private static void ConfigureFileListener()
-        {
-            try
-            {
-                if (currentLogFile != null)
-                {
-                    var fileListener = new TextWriterTraceListener(currentLogFile);
-                    fileListener.Name = "FileLogger";
-                    
-                    // Добавляем форматирование для файлового лога
-                    fileListener.TraceOutputOptions = TraceOptions.DateTime | TraceOptions.ThreadId;
-                    
-                    Trace.Listeners.Add(fileListener);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogCritical($"Не удалось создать файл лога: {ex.Message}");
-            }
-        }
+        // Логируем старт приложения
+        logger.Information("=== ЗАПУСК TASK MANAGER ===");
+        logger.Debug("Версия: 1.0.0");
+        logger.Debug("OS: {OS}", Environment.OSVersion);
+        logger.Debug(".NET Version: {Version}", Environment.Version);
+        logger.Information("Директория логов: {LogDirectory}", Path.GetFullPath(logDirectory));
 
-        // Методы для логирования с разными уровнями
-        public static void LogInformation(string message)
-        {
-            Trace.TraceInformation($"[INFO] {DateTime.Now:HH:mm:ss.fff} - {message}");
-        }
-
-        public static void LogWarning(string message)
-        {
-            Trace.TraceWarning($"[WARN] {DateTime.Now:HH:mm:ss.fff} - {message}");
-        }
-
-        public static void LogError(string message)
-        {
-            Trace.TraceError($"[ERROR] {DateTime.Now:HH:mm:ss.fff} - {message}");
-        }
-
-        public static void LogCritical(string message)
-        {
-            // Используем Trace.Fail для критических ошибок вместо TraceEvent
-            Trace.Fail($"[CRITICAL] {DateTime.Now:HH:mm:ss.fff} - {message}");
-        }
-
-        public static void LogTrace(string message)
-        {
-            Trace.WriteLine($"[TRACE] {DateTime.Now:HH:mm:ss.fff} - {message}");
-        }
-
-        public static void LogOperationStart(string operation)
-        {
-            LogTrace($"Начало операции {operation}");
-        }
-
-        public static void LogOperationEnd(string operation, string result = "")
-        {
-            string resultMsg = string.IsNullOrEmpty(result) ? "" : $" Результат: {result}";
-            LogTrace($"Конец операции {operation}{resultMsg}");
-        }
+        return logger;
     }
 }
